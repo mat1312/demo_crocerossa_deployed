@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assistente Croce Rossa Italiana</title>
+  <!-- Bootstrap CSS (lasciato per compatibilità con il widget) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Container del widget: centrato orizzontalmente, ancorato in alto */
+    .widget-container {
+      max-width: 600px;
+      min-height: 250px;
+      margin: 0 auto;                /* Centra il container nella pagina */
+      position: relative !important; /* Mantiene la compatibilità col widget */
+      display: flex;                 
+      align-items: flex-start;       /* Posiziona il widget in alto */
+      justify-content: center;       /* Centra orizzontalmente */
+    }
+
+    @media only screen and (max-width: 768px) {
+      .widget-container {
+        width: 90%;
+        min-height: auto;  /* su mobile l'altezza può ridursi */
+      }
+    }
+
+    /* Rimuoviamo i posizionamenti assoluti dal widget */
+    elevenlabs-convai {
+      position: static !important;
+      top: 0 !important;
+      left: 0 !important;
+      transform: none !important;
+      margin: 0 auto !important;
+      /* Se desideri che il widget riempia tutto lo spazio del container,
+         togli i commenti alle due righe seguenti:
+         width: 100% !important;
+         height: 100% !important;
+      */
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- Ridotto il margine verticale principale da my-8 a my-4 -->
+  <div class="max-w-5xl mx-auto my-4 px-4">
+    <!-- Titolo principale -->
+    <h1 class="text-center text-4xl font-bold mb-6">Assistente Croce Rossa Italiana</h1>
+    
+    <!-- Sezione Q&A -->
+    <section id="qa-section">
+      <h2 class="text-2xl font-semibold mb-4">Fai una domanda su procedure, regolamentazioni, normative e assistenza della Croce Rossa Italiana</h2>
+      <form id="qa-form">
+        <div class="mb-4">
+          <label for="userInput" class="block text-gray-700 font-medium mb-1">
+            Inserisci la tua domanda qui
+          </label>
+          <input 
+            type="text" 
+            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+            id="userInput" 
+            placeholder="La tua domanda">
+        </div>
+        <button 
+          type="submit" 
+          class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">
+          Invia
+        </button>
+      </form>
+      <div id="qa-response" class="mt-4"></div>
+    </section>
+    
+    <!-- Ridotto il margine dell'HR da my-8 a my-4 -->
+    <hr class="my-4 border-t border-gray-300">
+    
+    <!-- Sezione Agent Conversazionale ElevenLabs -->
+    <section id="elevenlabs-section" class="mb-4">
+      <h2 class="text-center text-2xl font-semibold mb-2">Agent Conversazionale ElevenLabs</h2>
+      <!-- Wrapper per centrare il widget sotto il titolo -->
+      <div class="flex justify-center my-2">
+        <div class="widget-container" id="widget-container">
+          <!-- Il widget verrà inserito qui -->
+          <elevenlabs-convai agent-id="j9lr1Zv4W5s6khw0lxK5"></elevenlabs-convai>
+        </div>
+      </div>
+      <!-- Script del widget ElevenLabs -->
+      <script src="https://elevenlabs.io/convai-widget/index.js" async></script>
+    </section>
+    
+    <!-- Ridotto il margine dell'HR da my-8 a my-4 -->
+    <hr class="my-4 border-t border-gray-300">
+    
+    <!-- Sezione Transcript e Estrazione Contatti -->
+    <section id="transcript-section" class="mb-4">
+      <h2 class="text-2xl font-semibold mb-4">Transcript e Estrazione Contatti</h2>
+      <div class="flex flex-wrap -mx-3">
+        <!-- Colonna Transcript -->
+        <div class="w-full md:w-1/2 px-3 mb-3">
+          <button 
+            id="btnRetrieve" 
+            class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-3">
+            Recupera conversazione
+          </button>
+          <div id="transcript-display"></div>
+        </div>
+        <!-- Colonna Estrazione Contatti -->
+        <div class="w-full md:w-1/2 px-3 mb-3">
+          <button 
+            id="btnExtract" 
+            class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-3">
+            Estrai contatti e informazioni
+          </button>
+          <div id="contact-display"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Script per gestire le chiamate al backend -->
+  <script>
+    // Gestione del form Q&A
+    document.getElementById('qa-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const userInput = document.getElementById('userInput').value.trim();
+      if (!userInput) return;
+      
+      document.getElementById('qa-response').innerHTML = '<div class="bg-blue-100 text-blue-700 p-3 rounded">Generazione della risposta...</div>';
+      
+      fetch('/api/qa', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ question: userInput })
+      })
+      .then(response => response.json())
+      .then(data => {
+        let sourcesHTML = '';
+        if (data.sources && Object.keys(data.sources).length > 0) {
+          sourcesHTML += '<h5 class="font-semibold mt-4">Fonti:</h5><ul class="list-disc ml-5">';
+          for (const [source, occs] of Object.entries(data.sources)) {
+            let occText = occs.map(([p, l]) => {
+              let str = "";
+              if (p) str += `pagina ${p}`;
+              if (l) str += (str ? ", " : "") + `riga ${l}`;
+              return str;
+            }).join(" - ");
+            sourcesHTML += `<li><a class="text-blue-600 hover:underline" href="${source}" target="_blank">${source}</a> ${occText ? "(" + occText + ")" : ""}</li>`;
+          }
+          sourcesHTML += '</ul>';
+        }
+        document.getElementById('qa-response').innerHTML =
+          `<div class="bg-green-100 text-green-700 p-3 rounded"><strong>A:</strong> ${data.answer}</div>` +
+          sourcesHTML;
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById('qa-response').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded">Si è verificato un errore.</div>';
+      });
+    });
+
+    // Recupera il transcript dalla conversazione ElevenLabs
+    document.getElementById('btnRetrieve').addEventListener('click', function() {
+      const transcriptDiv = document.getElementById('transcript-display');
+      transcriptDiv.innerHTML = '<div class="bg-blue-100 text-blue-700 p-3 rounded">Recupero conversazione...</div>';
+      
+      fetch('/api/transcript')
+      .then(response => response.json())
+      .then(data => {
+        transcriptDiv.innerHTML = data.transcript_html;
+      })
+      .catch(err => {
+        console.error(err);
+        transcriptDiv.innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded">Errore nel recupero della conversazione.</div>';
+      });
+    });
+
+    // Estrazione dei contatti dalla conversazione
+    document.getElementById('btnExtract').addEventListener('click', function() {
+      const contactDiv = document.getElementById('contact-display');
+      contactDiv.innerHTML = '<div class="bg-blue-100 text-blue-700 p-3 rounded">Estrazione contatti in corso...</div>';
+      
+      fetch('/api/extract_contacts')
+      .then(response => response.json())
+      .then(data => {
+        contactDiv.innerHTML = `<div class="bg-green-100 text-green-700 p-3 rounded">${data.contact_info}</div>`;
+      })
+      .catch(err => {
+        console.error(err);
+        contactDiv.innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded">Errore durante l\'estrazione dei contatti.</div>';
+      });
+    });
+    
+    // Al termine del caricamento, forziamo il widget a rimanere nel container
+    window.addEventListener('load', () => {
+      const widget = document.querySelector('elevenlabs-convai');
+      const container = document.getElementById('widget-container');
+      if(widget && container && widget.parentNode !== container) {
+        container.appendChild(widget);
+      }
+    });
+  </script>
+</body>
+</html>
