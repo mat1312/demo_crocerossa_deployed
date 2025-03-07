@@ -8,7 +8,34 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #f8f9fa;
+    }
+
+    .cri-red {
+      background-color: #e3000f;
+    }
+    
+    .cri-text-red {
+      color: #e3000f;
+    }
+
+    .card-shadow {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .card-shadow:hover {
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
     /* Container del widget: centrato orizzontalmente, ancorato in alto */
     .widget-container {
       max-width: 600px;
@@ -18,6 +45,8 @@
       display: flex;                 
       align-items: flex-start;       /* Posiziona il widget in alto */
       justify-content: center;       /* Centra orizzontalmente */
+      border-radius: 12px;
+      overflow: hidden;
     }
 
     @media only screen and (max-width: 768px) {
@@ -34,91 +63,162 @@
       left: 0 !important;
       transform: none !important;
       margin: 0 auto !important;
-      /* Se desideri che il widget riempia tutto lo spazio del container,
-         togli i commenti alle due righe seguenti:
-         width: 100% !important;
-         height: 100% !important;
-      */
+    }
+    
+    .btn-cri {
+      background-color: #e3000f;
+      color: white;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-cri:hover {
+      background-color: #c1000d;
+      color: white;
+      transform: translateY(-1px);
+    }
+    
+    .section-card {
+      border-radius: 12px;
+      background-color: white;
+      overflow: hidden;
+    }
+    
+    .section-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #eaeaea;
+      background-color: #f8f8f8;
+    }
+    
+    .section-body {
+      padding: 1.5rem;
+    }
+    
+    .input-cri {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      transition: all 0.2s ease;
+    }
+    
+    .input-cri:focus {
+      border-color: #e3000f;
+      box-shadow: 0 0 0 3px rgba(227, 0, 15, 0.2);
+      outline: none;
     }
   </style>
 </head>
 <body class="bg-gray-50">
-  <!-- Ridotto il margine verticale principale da my-8 a my-4 -->
-  <div class="max-w-5xl mx-auto my-4 px-4">
-    <!-- Titolo principale -->
-    <h1 class="text-center text-4xl font-bold mb-6">Assistente Croce Rossa Italiana</h1>
+  <div class="max-w-6xl mx-auto my-8 px-4">
+    <!-- Header con logo e titolo -->
+    <header class="flex flex-col md:flex-row items-center justify-center mb-8">
+      <div class="flex items-center mb-4 md:mb-0">
+        <svg class="w-12 h-12 mr-4" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100" height="100" rx="10" fill="#E3000F"/>
+          <rect x="43" y="20" width="14" height="60" fill="white"/>
+          <rect x="20" y="43" width="60" height="14" fill="white"/>
+        </svg>
+        <h1 class="text-3xl md:text-4xl font-bold cri-text-red">Assistente Croce Rossa Italiana</h1>
+      </div>
+    </header>
     
     <!-- Sezione Q&A -->
-    <section id="qa-section">
-      <h2 class="text-2xl font-semibold mb-4">Fai una domanda su procedure, regolamentazioni, normative e assistenza della Croce Rossa Italiana</h2>
-      <form id="qa-form">
-        <div class="mb-4">
-          <label for="userInput" class="block text-gray-700 font-medium mb-1">
-            Inserisci la tua domanda qui
-          </label>
-          <input 
-            type="text" 
-            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-            id="userInput" 
-            placeholder="La tua domanda">
-        </div>
-        <button 
-          type="submit" 
-          class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">
-          Invia
-        </button>
-      </form>
-      <div id="qa-response" class="mt-4"></div>
+    <section id="qa-section" class="section-card card-shadow mb-8">
+      <div class="section-header">
+        <h2 class="text-xl md:text-2xl font-semibold">Fai una domanda alla CRI</h2>
+      </div>
+      <div class="section-body">
+        <form id="qa-form">
+          <div class="mb-4">
+            <label for="userInput" class="block text-gray-700 font-medium mb-2">
+              Inserisci la tua domanda su procedure, regolamentazioni, normative e assistenza
+            </label>
+            <input 
+              type="text" 
+              class="w-full input-cri" 
+              id="userInput" 
+              placeholder="Es. Come posso diventare volontario?">
+          </div>
+          <button 
+            type="submit" 
+            class="btn-cri font-medium py-2 px-6 rounded-lg flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            Invia
+          </button>
+        </form>
+        <div id="qa-response" class="mt-6"></div>
+      </div>
     </section>
-    
-    <!-- Ridotto il margine dell'HR da my-8 a my-4 -->
-    <hr class="my-4 border-t border-gray-300">
     
     <!-- Sezione Agent Conversazionale ElevenLabs -->
-    <section id="elevenlabs-section" class="mb-4">
-      <h2 class="text-center text-2xl font-semibold mb-2">Agent Conversazionale ElevenLabs</h2>
-      <!-- Wrapper per centrare il widget sotto il titolo -->
-      <div class="flex justify-center my-2">
-        <div class="widget-container" id="widget-container">
-          <!-- Il widget verrà inserito qui -->
-          <elevenlabs-convai agent-id="j9lr1Zv4W5s6khw0lxK5"></elevenlabs-convai>
+    <section id="elevenlabs-section" class="section-card card-shadow mb-8">
+      <div class="section-header">
+        <h2 class="text-xl md:text-2xl font-semibold text-center">Agent Conversazionale ElevenLabs</h2>
+      </div>
+      <div class="section-body p-0 bg-gray-50">
+        <!-- Wrapper per centrare il widget sotto il titolo -->
+        <div class="flex justify-center py-4">
+          <div class="widget-container" id="widget-container">
+            <!-- Widget ElevenLabs: sostituisci agent-id se necessario -->
+            <elevenlabs-convai agent-id="j9lr1Zv4W5s6khw0lxK5"></elevenlabs-convai>
+          </div>
         </div>
       </div>
-      <!-- Script del widget ElevenLabs -->
-      <script src="https://elevenlabs.io/convai-widget/index.js" async></script>
     </section>
-    
-    <!-- Ridotto il margine dell'HR da my-8 a my-4 -->
-    <hr class="my-4 border-t border-gray-300">
     
     <!-- Sezione Transcript e Estrazione Contatti -->
-    <section id="transcript-section" class="mb-4">
-      <h2 class="text-2xl font-semibold mb-4">Transcript e Estrazione Contatti</h2>
-      <div class="flex flex-wrap -mx-3">
-        <!-- Colonna Transcript -->
-        <div class="w-full md:w-1/2 px-3 mb-3">
-          <button 
-            id="btnRetrieve" 
-            class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-3">
-            Recupera conversazione
-          </button>
-          <div id="transcript-display"></div>
-        </div>
-        <!-- Colonna Estrazione Contatti -->
-        <div class="w-full md:w-1/2 px-3 mb-3">
-          <button 
-            id="btnExtract" 
-            class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-3">
-            Estrai contatti e informazioni
-          </button>
-          <div id="contact-display"></div>
+    <section id="transcript-section" class="section-card card-shadow mb-8">
+      <div class="section-header">
+        <h2 class="text-xl md:text-2xl font-semibold">Transcript e Estrazione Contatti</h2>
+      </div>
+      <div class="section-body">
+        <div class="flex flex-wrap -mx-3">
+          <!-- Colonna Transcript -->
+          <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+            <div class="bg-gray-50 p-4 rounded-lg mb-3">
+              <h3 class="font-medium mb-3">Recupera la conversazione</h3>
+              <button 
+                id="btnRetrieve" 
+                class="btn-cri font-medium py-2 px-4 rounded-lg flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
+                Scarica transcript
+              </button>
+            </div>
+            <div id="transcript-display" class="bg-white border border-gray-200 rounded-lg p-4 h-64 overflow-y-auto"></div>
+          </div>
+          
+          <!-- Colonna Estrazione Contatti -->
+          <div class="w-full md:w-1/2 px-3">
+            <div class="bg-gray-50 p-4 rounded-lg mb-3">
+              <h3 class="font-medium mb-3">Estrai informazioni utili</h3>
+              <button 
+                id="btnExtract" 
+                class="btn-cri font-medium py-2 px-4 rounded-lg flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Estrai contatti
+              </button>
+            </div>
+            <div id="contact-display" class="bg-white border border-gray-200 rounded-lg p-4 h-64 overflow-y-auto"></div>
+          </div>
         </div>
       </div>
     </section>
+    
+    <!-- Footer -->
+    <footer class="text-center text-gray-500 text-sm py-4">
+      <p>© 2025 Croce Rossa Italiana - Tutti i diritti riservati</p>
+    </footer>
   </div>
   
   <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Script del widget ElevenLabs -->
+  <script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
   
   <!-- Script per gestire le chiamate al backend -->
   <script>
@@ -128,7 +228,13 @@
       const userInput = document.getElementById('userInput').value.trim();
       if (!userInput) return;
       
-      document.getElementById('qa-response').innerHTML = '<div class="bg-blue-100 text-blue-700 p-3 rounded">Generazione della risposta...</div>';
+      document.getElementById('qa-response').innerHTML = 
+        '<div class="bg-blue-50 text-blue-700 p-4 rounded-lg border border-blue-100 flex items-center">' +
+        '<svg class="animate-spin h-5 w-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
+        '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+        '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>' +
+        '</svg>' +
+        'Generazione della risposta in corso...</div>';
       
       fetch('/api/qa', {
         method: 'POST',
@@ -139,7 +245,7 @@
       .then(data => {
         let sourcesHTML = '';
         if (data.sources && Object.keys(data.sources).length > 0) {
-          sourcesHTML += '<h5 class="font-semibold mt-4">Fonti:</h5><ul class="list-disc ml-5">';
+          sourcesHTML += '<div class="mt-4"><h5 class="font-semibold mb-2">Fonti:</h5><ul class="list-disc ml-5 space-y-1">';
           for (const [source, occs] of Object.entries(data.sources)) {
             let occText = occs.map(([p, l]) => {
               let str = "";
@@ -147,57 +253,133 @@
               if (l) str += (str ? ", " : "") + `riga ${l}`;
               return str;
             }).join(" - ");
-            sourcesHTML += `<li><a class="text-blue-600 hover:underline" href="${source}" target="_blank">${source}</a> ${occText ? "(" + occText + ")" : ""}</li>`;
+            sourcesHTML += `<li><a class="text-red-600 hover:underline" href="${source}" target="_blank">${source}</a> ${occText ? "(" + occText + ")" : ""}</li>`;
           }
-          sourcesHTML += '</ul>';
+          sourcesHTML += '</ul></div>';
         }
+        
         document.getElementById('qa-response').innerHTML =
-          `<div class="bg-green-100 text-green-700 p-3 rounded"><strong>A:</strong> ${data.answer}</div>` +
-          sourcesHTML;
+          `<div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+            <div class="flex items-start mb-4">
+              <svg class="w-6 h-6 cri-text-red mr-3 mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <div class="font-medium text-lg mb-2">Risposta:</div>
+                <div class="text-gray-700">${data.answer}</div>
+              </div>
+            </div>
+            ${sourcesHTML}
+          </div>`;
       })
       .catch(err => {
         console.error(err);
-        document.getElementById('qa-response').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded">Si è verificato un errore.</div>';
+        document.getElementById('qa-response').innerHTML = 
+          `<div class="bg-red-50 p-4 rounded-lg border border-red-100 flex items-center">
+            <svg class="w-6 h-6 text-red-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>Si è verificato un errore durante la generazione della risposta.</div>
+          </div>`;
       });
     });
 
     // Recupera il transcript dalla conversazione ElevenLabs
     document.getElementById('btnRetrieve').addEventListener('click', function() {
       const transcriptDiv = document.getElementById('transcript-display');
-      transcriptDiv.innerHTML = '<div class="bg-blue-100 text-blue-700 p-3 rounded">Recupero conversazione...</div>';
+      transcriptDiv.innerHTML = 
+        '<div class="flex items-center justify-center h-full">' +
+        '<svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
+        '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+        '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>' +
+        '</svg>' +
+        '</div>';
       
       fetch('/api/transcript')
       .then(response => response.json())
       .then(data => {
-        transcriptDiv.innerHTML = data.transcript_html;
+        if (data.transcript_html && data.transcript_html.trim()) {
+          transcriptDiv.innerHTML = 
+            '<div class="px-2">' + 
+            data.transcript_html + 
+            '</div>';
+        } else {
+          transcriptDiv.innerHTML = 
+            '<div class="flex items-center justify-center h-full text-gray-500">' +
+            '<p>Nessuna conversazione disponibile</p>' +
+            '</div>';
+        }
       })
       .catch(err => {
         console.error(err);
-        transcriptDiv.innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded">Errore nel recupero della conversazione.</div>';
+        transcriptDiv.innerHTML = 
+          '<div class="bg-red-50 p-4 rounded-lg border border-red-100 flex items-center">' +
+          '<svg class="w-6 h-6 text-red-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />' +
+          '</svg>' +
+          '<div>Errore nel recupero della conversazione.</div>' +
+          '</div>';
       });
     });
 
     // Estrazione dei contatti dalla conversazione
     document.getElementById('btnExtract').addEventListener('click', function() {
       const contactDiv = document.getElementById('contact-display');
-      contactDiv.innerHTML = '<div class="bg-blue-100 text-blue-700 p-3 rounded">Estrazione contatti in corso...</div>';
+      contactDiv.innerHTML = 
+        '<div class="flex items-center justify-center h-full">' +
+        '<svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
+        '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+        '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>' +
+        '</svg>' +
+        '</div>';
       
       fetch('/api/extract_contacts')
       .then(response => response.json())
       .then(data => {
-        contactDiv.innerHTML = `<div class="bg-green-100 text-green-700 p-3 rounded">${data.contact_info}</div>`;
+        if (data.contact_info && data.contact_info.trim()) {
+          contactDiv.innerHTML = 
+            '<div class="bg-green-50 p-4 rounded-lg border border-green-100">' +
+            data.contact_info +
+            '</div>';
+        } else {
+          contactDiv.innerHTML = 
+            '<div class="flex items-center justify-center h-full text-gray-500">' +
+            '<p>Nessuna informazione di contatto rilevata</p>' +
+            '</div>';
+        }
       })
       .catch(err => {
         console.error(err);
-        contactDiv.innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded">Errore durante l\'estrazione dei contatti.</div>';
+        contactDiv.innerHTML = 
+          '<div class="bg-red-50 p-4 rounded-lg border border-red-100 flex items-center">' +
+          '<svg class="w-6 h-6 text-red-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />' +
+          '</svg>' +
+          '<div>Errore durante l\'estrazione dei contatti.</div>' +
+          '</div>';
       });
     });
     
     // Al termine del caricamento, forziamo il widget a rimanere nel container
     window.addEventListener('load', () => {
+      const observer = new MutationObserver((mutations, obs) => {
+        const widget = document.querySelector('elevenlabs-convai');
+        const container = document.getElementById('widget-container');
+        if (widget && container && widget.parentNode !== container) {
+          container.appendChild(widget);
+        }
+      });
+      
+      // Osserva il DOM per catturare quando il widget viene caricato/inserito
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      
+      // Controllo iniziale
       const widget = document.querySelector('elevenlabs-convai');
       const container = document.getElementById('widget-container');
-      if(widget && container && widget.parentNode !== container) {
+      if (widget && container && widget.parentNode !== container) {
         container.appendChild(widget);
       }
     });
