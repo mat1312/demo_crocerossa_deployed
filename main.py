@@ -1,12 +1,21 @@
 import os
 import requests
+import uuid
+import logging
+from typing import Dict, Any, List
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 from langchain import PromptTemplate, LLMChain
+from langchain.memory import ConversationBufferMemory
+
+# Configurazione del logger
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Carica le variabili d'ambiente dal file .env
 load_dotenv()
@@ -32,8 +41,8 @@ SYSTEM_PROMPT = """
 Sei "Assistente per Procedure e Regolamentazioni" della Croce Rossa Italiana. Il tuo compito è fornire informazioni e orientamenti preliminari su procedure, regolamentazioni e normative inerenti alle attività della Croce Rossa Italiana, mantenendo un tono professionale, chiaro ed empatico e rivolgendoti sempre con il "Lei".
 
 Rispondi sia a domande specifiche relative alle procedure della Croce Rossa Italiana che a domande generali inerenti normative e regolamentazioni. Se necessario, consulta la tua knowledge base per informazioni aggiornate e dettagliate.
-Se il caso richiede ulteriori approfondimenti, informa l’utente che un operatore della Croce Rossa Italiana lo contatterà.
-Fai una domanda alla volta e guida l’utente in modo naturale.
+Se il caso richiede ulteriori approfondimenti, informa l'utente che un operatore della Croce Rossa Italiana lo contatterà.
+Fai una domanda alla volta e guida l'utente in modo naturale.
 Chiudi la conversazione solo dopo aver raccolto l'email e il numero di telefono dell'utente.
 """
 
@@ -48,9 +57,140 @@ qa_chain = RetrievalQA.from_chain_type(
     return_source_documents=True
 )
 
+# Dizionario per le conversazioni attive
+active_conversations = {}
+
 # Variabili globali
 transcript_global = []        # Per salvare il transcript da ElevenLabs
 conversation_memory = []      # Per memorizzare le coppie domanda-risposta della chat
+
+# Modello per il webhook di ElevenLabs
+class ElevenLabsWebhook(BaseModel):
+    text: str
+    conversation_id: str = None
+
+class CRIAssistant:
+    def __init__(self):
+        self.vector_store = vector_store
+        self.qa_chain = qa_chain
+    
+    def retrieve_relevant_documents(self, query: str) -> List:
+        """
+        Recupera i documenti rilevanti per una query.
+        
+        Args:
+            query: La query dell'utente
+            
+        Returns:
+            I documenti rilevanti
+        """
+        return self.vector_store.similarity_search(query)
+    
+    def format_retrieved_documents(self, documents: List) -> str:
+        """
+        Formatta i documenti recuperati in testo leggibile.
+        
+        Args:
+            documents: I documenti recuperati
+            
+        Returns:
+            Il testo formattato
+        """
+        result = []
+        for i, doc in enumerate(documents):
+            source = doc.metadata.get("source", "Fonte sconosciuta").replace("\\", "/")
+            page = doc.metadata.get("page", "N/A")
+            source_info = f"Documento: {source}"
+            if page != "N/A":
+                source_info += f" (Pagina: {page})"
+            
+            result.append(f"Informazione {i+1}:\n{doc.page_content}\n\nFonte: {source_info}\n")
+        
+        return "\n".join(result)
+    
+    async def elevenlabs_webhook_handler(self, request_data: ElevenLabsWebhook) -> Dict[str, Any]:
+        """
+        Gestisce le richieste webhook da ElevenLabs.
+        Restituisce i top 3 chunk più pertinenti invece di passarli all'LLM.
+        
+        Args:
+            request_data: I dati della richiesta webhook
+            
+        Returns:
+            La risposta formattata per ElevenLabs con i chunk più pertinenti
+        """
+        try:
+            # Log della richiesta
+            logger.info(f"Ricevuta richiesta webhook da ElevenLabs: {request_data}")
+            
+            # Estrai i dati dalla richiesta di ElevenLabs
+            input_text = request_data.text
+            conversation_id = request_data.conversation_id or str(uuid.uuid4())
+            
+            if not input_text:
+                logger.warning("Ricevuta richiesta webhook senza testo")
+                return {
+                    "text": "Non è stata fornita alcuna domanda.",
+                    "conversation_id": conversation_id
+                }
+            
+            # Recupera i documenti rilevanti (limitati a 3)
+            documents = self.retrieve_relevant_documents(input_text)[:3]
+            
+            if not documents:
+                logger.warning("Nessun documento recuperato per la query")
+                return {
+                    "text": "Non ho trovato informazioni pertinenti alla tua domanda.",
+                    "conversation_id": conversation_id
+                }
+            
+            # Formatta i documenti in un contesto (utilizza la funzione esistente)
+            chunks_text = self.format_retrieved_documents(documents)
+            
+            # Formatta la risposta per ElevenLabs
+            response = {
+                "text": chunks_text,
+                "conversation_id": conversation_id
+            }
+            
+            logger.info(f"Inviata risposta webhook con i top 3 chunk per conversation_id: {conversation_id}")
+            return response
+            
+        except Exception as e:
+            error_msg = f"Errore nel webhook: {str(e)}"
+            logger.error(error_msg)
+            return {
+                "text": "Mi dispiace, si è verificato un errore durante l'elaborazione della richiesta.",
+                "conversation_id": conversation_id
+            }
+    
+    def reset_conversation(self, session_id: str) -> Dict[str, Any]:
+        """
+        Resetta la memoria della conversazione.
+        
+        Args:
+            session_id: ID di sessione
+            
+        Returns:
+            Un messaggio di conferma
+        """
+        if session_id in active_conversations:
+            active_conversations[session_id] = ConversationBufferMemory(
+                memory_key="chat_history",
+                return_messages=True
+            )
+            logger.info(f"Conversazione resettata per session_id: {session_id}")
+        else:
+            logger.warning(f"Tentativo di reset per una sessione inesistente: {session_id}")
+        
+        return {
+            "status": "success",
+            "message": "Conversazione resettata con successo",
+            "session_id": session_id
+        }
+
+# Inizializza l'assistente CRI
+cri_assistant = CRIAssistant()
 
 # Funzioni helper per recuperare le conversazioni da ElevenLabs
 def get_last_conversation(agent_id: str, api_key: str):
@@ -75,13 +215,15 @@ def get_conversation_details(conversation_id: str, api_key: str):
     return response.json()
 
 app = FastAPI()
-from fastapi.staticfiles import StaticFiles
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Modello Pydantic per la richiesta Q&A
 class QARequest(BaseModel):
     question: str
+
+# Modello per il reset della conversazione
+class ResetRequest(BaseModel):
+    session_id: str
 
 @app.post("/api/qa")
 def qa_endpoint(request: QARequest):
@@ -171,6 +313,32 @@ Trascrizione:
     contact_chain = LLMChain(llm=llm, prompt=template)
     contact_info = contact_chain.run(transcript=transcript_text)
     return {"contact_info": contact_info}
+
+@app.post("/api/elevenlabs/webhook")
+async def elevenlabs_webhook(webhook_data: ElevenLabsWebhook):
+    """
+    Endpoint per ricevere i webhook da ElevenLabs.
+    
+    Args:
+        webhook_data: I dati ricevuti dal webhook
+        
+    Returns:
+        La risposta per ElevenLabs
+    """
+    return await cri_assistant.elevenlabs_webhook_handler(webhook_data)
+
+@app.post("/api/reset_conversation")
+def reset_conversation_endpoint(request: ResetRequest):
+    """
+    Endpoint per resettare una conversazione.
+    
+    Args:
+        request: La richiesta contenente l'ID di sessione
+        
+    Returns:
+        Lo stato dell'operazione
+    """
+    return cri_assistant.reset_conversation(request.session_id)
 
 if __name__ == "__main__":
     import uvicorn
